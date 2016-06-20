@@ -1,6 +1,6 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2014 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 #
 #  OpenELEC is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -39,10 +39,10 @@ pre_configure_target() {
 configure_target() {
   cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_CONF \
         -DCMAKE_INSTALL_PREFIX=/usr \
+        -DBUILD_SHARED_LIBS=off \
         ..
 }
 
 post_makeinstall_target() {
-  rm $SYSROOT_PREFIX/usr/lib/libtinyxml2.so*
   rm -rf $INSTALL/usr
 }
