@@ -4,7 +4,7 @@
 # determines DISTRO, if not forced by user
 # default is OpenELEC
 if [ -z "$DISTRO" ]; then
-  DISTRO="OpenELEC"
+  DISTRO="LibreELEC"
 else
   DISTRO="$DISTRO"
 fi
@@ -82,21 +82,21 @@ LINUX_DEPENDS="$PROJECT_DIR/$PROJECT/linux/linux.$TARGET_ARCH.conf $PROJECT_DIR/
   CCACHE_CACHE_SIZE="30G"
 
 # install devtools on development builds
-  if [ "$OPENELEC_VERSION" = "devel" ]; then
+  if [ "$LIBREELEC_VERSION" = "devel" ]; then
     DEVTOOLS=yes
   fi
 
 # read options from $HOME if available
-  if [ -f "$HOME/.openelec/options" ]; then
-    . $HOME/.openelec/options
+  if [ -f "$HOME/.libreelec/options" ]; then
+    . $HOME/.libreelec/options
   fi
-  if [ -f "$HOME/.openelec/$PROJECT/options" ]; then
-    . $HOME/.openelec/$PROJECT/options
+  if [ -f "$HOME/.libreelec/$PROJECT/options" ]; then
+    . $HOME/.libreelec/$PROJECT/options
   fi
 
 # read distro options from $HOME if available
-  if [ -f "$HOME/.openelec/options.$DISTRO" ]; then
-    . $HOME/.openelec/options.$DISTRO
+  if [ -f "$HOME/.libreelec/options.$DISTRO" ]; then
+    . $HOME/.libreelec/options.$DISTRO
   fi
 
 . config/graphic
