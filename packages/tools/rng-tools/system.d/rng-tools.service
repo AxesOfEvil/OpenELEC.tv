@@ -1,8 +1,0 @@
-[Unit]
-Description=Hardware RNG Encryption Gatherer Daemon
-
-[Service]
-ExecStart=/usr/sbin/rngd -f
-
-[Install]
-WantedBy=basic.target

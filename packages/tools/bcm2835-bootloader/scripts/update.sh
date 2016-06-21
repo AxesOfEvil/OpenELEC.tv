@@ -24,11 +24,15 @@
 # mount $BOOT_ROOT r/w
   mount -o remount,rw $BOOT_ROOT
 
+# Something has gone horribly wrong... clean up
+  [ -s $BOOT_ROOT/overlays ] || rm -fr $BOOT_ROOT/overlays $BOOT_ROOT/FSCK*.REC
+
 # update bootloader files
   cp -p $SYSTEM_ROOT/usr/share/bootloader/LICENCE* $BOOT_ROOT
   cp -p $SYSTEM_ROOT/usr/share/bootloader/bootcode.bin $BOOT_ROOT
   cp -p $SYSTEM_ROOT/usr/share/bootloader/fixup.dat $BOOT_ROOT
   cp -p $SYSTEM_ROOT/usr/share/bootloader/start.elf $BOOT_ROOT
+  [ -f $SYSTEM_ROOT/usr/share/bootloader/dt-blob.bin ] && cp -p $SYSTEM_ROOT/usr/share/bootloader/dt-blob.bin $BOOT_ROOT
 
   cp -p $SYSTEM_ROOT/usr/share/bootloader/*.dtb $BOOT_ROOT
   cp -pR $SYSTEM_ROOT/usr/share/bootloader/overlays $BOOT_ROOT

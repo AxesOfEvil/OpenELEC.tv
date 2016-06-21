@@ -16,23 +16,28 @@
 #  along with OpenELEC.  If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 
-PKG_NAME="mkbootimg"
-PKG_VERSION="6668fc2"
+PKG_NAME="populatefs"
+PKG_VERSION="95cc98b"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
-PKG_SITE="https://android.googlesource.com/platform/system/core/+/master/mkbootimg/"
-PKG_URL="https://github.com/codesnake/mkbootimg/archive/$PKG_VERSION.tar.gz"
-PKG_DEPENDS_HOST=""
+PKG_SITE="https://github.com/oskarirauta/populatefs"
+PKG_URL="https://github.com/oskarirauta/populatefs/archive/$PKG_VERSION.tar.gz"
+PKG_DEPENDS_HOST="e2fsprogs:host"
 PKG_PRIORITY="optional"
 PKG_SECTION="tools"
-PKG_SHORTDESC="mkbootimg: Creates kernel boot images for Android"
-PKG_LONGDESC="mkbootimg: Creates kernel boot images for Android"
-
+PKG_SHORTDESC="populatefs: Tool for replacing genext2fs when creating ext4 images"
+PKG_LONGDESC="populatefs: Tool for replacing genext2fs when creating ext4 images"
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
 
+make_host() {
+  make EXTRA_LIBS="-lcom_err -lpthread" CFLAGS="$CFLAGS -fPIC"
+}
+
 makeinstall_host() {
-  mkdir -p $SYSROOT_PREFIX/usr/include
-  cp mkbootimg $ROOT/$TOOLCHAIN/bin/
+  $STRIP src/populatefs
+
+  mkdir -p $ROOT/$TOOLCHAIN/sbin
+  cp src/populatefs $ROOT/$TOOLCHAIN/sbin
 }
