@@ -1,6 +1,6 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2014 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 #
 #  OpenELEC is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ PKG_LICENSE="GPL"
 PKG_SITE="http://squashfs.sourceforge.net/"
 PKG_URL="$SOURCEFORGE_SRC/squashfs/squashfs/${PKG_NAME}${PKG_VERSION}/${PKG_NAME}${PKG_VERSION}.tar.gz"
 PKG_SOURCE_DIR="${PKG_NAME}${PKG_VERSION}"
-PKG_DEPENDS_HOST="ccache:host zlib:host lzo:host xz:host"
+PKG_DEPENDS_HOST="ccache:host zlib:host lzo:host xz:host lz4:host"
 PKG_PRIORITY="optional"
 PKG_SECTION="sysutils"
 PKG_SHORTDESC="squashfs-tools: A compressed read-only filesystem for Linux"
@@ -35,7 +35,7 @@ PKG_AUTORECONF="no"
 
 make_host() {
   make -C squashfs-tools mksquashfs \
-       XZ_SUPPORT=1 LZO_SUPPORT=1 \
+       XZ_SUPPORT=1 LZO_SUPPORT=1 LZ4_SUPPORT=1 \
        INCLUDEDIR="-I. -I$ROOT/$TOOLCHAIN/include"
 }
 

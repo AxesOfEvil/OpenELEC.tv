@@ -1,6 +1,6 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2014 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 #
 #  OpenELEC is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 ################################################################################
 
 PKG_NAME="busybox"
-PKG_VERSION="1.23.2"
+PKG_VERSION="1.24.2"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
@@ -165,8 +165,11 @@ makeinstall_target() {
     cp $PKG_DIR/scripts/pastebinit $INSTALL/usr/bin/
     ln -sf pastebinit $INSTALL/usr/bin/paste
 
-  mkdir -p $INSTALL/usr/lib/openelec
-    cp $PKG_DIR/scripts/fs-resize $INSTALL/usr/lib/openelec
+  mkdir -p $INSTALL/usr/lib/libreelec
+    cp $PKG_DIR/scripts/functions $INSTALL/usr/lib/libreelec
+    cp $PKG_DIR/scripts/fs-resize $INSTALL/usr/lib/libreelec
+    sed -e "s/@DISTRONAME@/$DISTRONAME/g" \
+        -i $INSTALL/usr/lib/libreelec/fs-resize
 
   mkdir -p $INSTALL/etc
     cp $PKG_DIR/config/profile $INSTALL/etc
@@ -181,10 +184,7 @@ makeinstall_target() {
     touch $INSTALL/etc/fstab
 
   # /etc/machine-id, needed by systemd and dbus
-    ln -sf /run/machine-id $INSTALL/etc/machine-id
-
-  # /etc/hosts must be writeable
-    ln -sf /var/cache/hosts $INSTALL/etc/hosts
+    ln -sf /storage/.cache/machine-id $INSTALL/etc/machine-id
 
   # /etc/mtab is needed by udisks etc...
     ln -sf /proc/self/mounts $INSTALL/etc/mtab
@@ -250,6 +250,9 @@ makeinstall_init() {
     chmod 755 $INSTALL/platform_init
   fi
 
+  cp $PKG_DIR/scripts/functions $INSTALL
   cp $PKG_DIR/scripts/init $INSTALL
+  sed -e "s/@DISTRONAME@/$DISTRONAME/g" \
+      -i $INSTALL/init
   chmod 755 $INSTALL/init
 }

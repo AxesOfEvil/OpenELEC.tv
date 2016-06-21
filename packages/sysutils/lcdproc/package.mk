@@ -1,6 +1,6 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2014 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 #
 #  OpenELEC is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -72,8 +72,8 @@ post_makeinstall_target() {
       -e "s|^#normal_font=.*$|normal_font=/usr/share/fonts/liberation/LiberationMono-Bold.ttf|" \
       -i $INSTALL/etc/LCDd.conf
 
-    mkdir -p $INSTALL/usr/lib/openelec
-      cp $PKG_DIR/scripts/lcd-wrapper $INSTALL/usr/lib/openelec
+    mkdir -p $INSTALL/usr/lib/libreelec
+      cp $PKG_DIR/scripts/lcd-wrapper $INSTALL/usr/lib/libreelec
 
 }
 
