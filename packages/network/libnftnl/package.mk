@@ -1,6 +1,6 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2014 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 #
 #  OpenELEC is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,30 +16,21 @@
 #  along with OpenELEC.  If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 
-PKG_NAME="afpfs-ng"
-PKG_VERSION="0.8.1"
+PKG_NAME="libnftnl"
+PKG_VERSION="1.0.5"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
-PKG_SITE="http://sourceforge.net/projects/afpfs-ng/"
-PKG_URL="$SOURCEFORGE_SRC/$PKG_NAME/$PKG_NAME/$PKG_VERSION/$PKG_NAME-$PKG_VERSION.tar.bz2"
-PKG_DEPENDS_TARGET="toolchain libgpg-error libgcrypt ncurses"
+PKG_SITE="http://netfilter.org/projects/libnftnl"
+PKG_URL="http://netfilter.org/projects/libnftnl/files/$PKG_NAME-$PKG_VERSION.tar.bz2"
+PKG_DEPENDS_TARGET="toolchain libmnl"
 PKG_PRIORITY="optional"
 PKG_SECTION="network"
-PKG_SHORTDESC="afpfs-ng: an Apple Filing Protocol client"
-PKG_LONGDESC="afpfs-ng is an Apple Filing Protocol client that will allow BSD, Linux and Mac OS X systems to access files exported from a Mac OS system with AFP over TCP."
+PKG_SHORTDESC="libnftnl: a userspace library providing a low-level netlink programming interface (API) to the in-kernel nf_tables subsystem."
+PKG_LONGDESC="libnftnl is a userspace library providing a low-level netlink programming interface (API) to the in-kernel nf_tables subsystem. The library libnftnl has been previously known as libnftables. This library is currently used by nftables."
 
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="yes"
 
-PKG_CONFIGURE_OPTS_TARGET="ac_cv_func_malloc_0_nonnull=yes \
-                           --enable-gcrypt \
-                           --disable-fuse"
+PKG_CONFIGURE_OPTS_TARGET="--disable-shared --enable-static"
 
-PKG_MAKE_OPTS_TARGET="-C lib"
-
-makeinstall_target() {
-  $MAKEINSTALL -C lib
-  $MAKEINSTALL -C include
-  make -C lib DESTDIR=$INSTALL install
-}

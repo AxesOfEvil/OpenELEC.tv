@@ -1,6 +1,6 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2014 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 #
 #  OpenELEC is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,32 +16,33 @@
 #  along with OpenELEC.  If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 
-PKG_NAME="pptp"
-PKG_VERSION="1.8.0"
+PKG_NAME="libdnet"
+PKG_VERSION="1.12"
 PKG_REV="1"
 PKG_ARCH="any"
-PKG_LICENSE="GPL"
-PKG_SITE="http://pptpclient.sourceforge.net"
-PKG_URL="$SOURCEFORGE_SRC/project/pptpclient/pptp/$PKG_NAME-$PKG_VERSION/$PKG_NAME-$PKG_VERSION.tar.gz"
-PKG_DEPENDS_TARGET="toolchain ppp"
+PKG_LICENSE="BSD"
+PKG_SITE="http://code.google.com/p/libdnet/"
+PKG_URL="http://libdnet.googlecode.com/files/$PKG_NAME-$PKG_VERSION.tgz"
+PKG_DEPENDS_TARGET="toolchain"
 PKG_PRIORITY="optional"
 PKG_SECTION="network"
-PKG_SHORTDESC="pptp: a Linux, FreeBSD, NetBSD and OpenBSD client for the proprietary Microsoft Point-to-Point Tunneling Protocol, PPTP"
-PKG_LONGDESC="PPTP Client is a Linux, FreeBSD, NetBSD and OpenBSD client for the proprietary Microsoft Point-to-Point Tunneling Protocol, PPTP. Allows connection to a PPTP based Virtual Private Network (VPN)."
+PKG_SHORTDESC="A simplified, portable interface to several low-level networking routines"
+PKG_LONGDESC="A simplified, portable interface to several low-level networking routines"
 
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
 
-make_target() {
-  make PPPD="/usr/sbin/pppd" \
-       IP="/sbin/ip" \
-       CC="$CC" \
-       CFLAGS="$CFLAGS" \
-       LDFLAGS="$LDFLAGS" \
-       config.h pptp
+PKG_CONFIGURE_OPTS_TARGET="ac_cv_func_strlcat=no \
+                           ac_cv_func_strlcpy=no \
+                           --enable-static \
+                           --disable-shared \
+                           --without-python"
+
+pre_configure_target() {
+  sed "s|@prefix@|$SYSROOT_PREFIX/usr|g" -i $ROOT/$PKG_BUILD/dnet-config.in
 }
 
-makeinstall_target() {
-  mkdir -p $INSTALL/usr/sbin
-    cp -P pptp $INSTALL/usr/sbin
+post_makeinstall_target() {
+  mkdir -p $ROOT/$TOOLCHAIN/bin
+    cp dnet-config $ROOT/$TOOLCHAIN/bin/
 }
