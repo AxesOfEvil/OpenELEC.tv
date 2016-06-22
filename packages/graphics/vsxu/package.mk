@@ -1,6 +1,6 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2014 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 #
 #  OpenELEC is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,12 +19,12 @@
 PKG_NAME="vsxu"
 PKG_VERSION="0.5.1"
 PKG_REV="1"
-PKG_ARCH="any"
+PKG_ARCH="i386 x86_64"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.vsxu.com"
 # repackaged from https://github.com/vovoid/vsxu/archive/$PKG_VERSION.tar.gz
 PKG_URL="$DISTRO_SRC/$PKG_NAME-$PKG_VERSION.tar.gz"
-PKG_DEPENDS_TARGET="toolchain glew glfw"
+PKG_DEPENDS_TARGET="toolchain $OPENGL libX11 glew glfw zlib libpng libjpeg-turbo freetype"
 PKG_PRIORITY="optional"
 PKG_SECTION="multimedia"
 PKG_SHORTDESC="vsxu:"
@@ -32,6 +32,8 @@ PKG_LONGDESC="vsxu:"
 
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
+
+export LDFLAGS="$LDFLAGS -lX11"
 
 configure_target() {
   cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_CONF \
