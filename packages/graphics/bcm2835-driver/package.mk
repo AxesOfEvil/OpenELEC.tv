@@ -1,6 +1,6 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2014 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 #
 #  OpenELEC is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -17,13 +17,13 @@
 ################################################################################
 
 PKG_NAME="bcm2835-driver"
-PKG_VERSION="ba7a8fb"
+PKG_VERSION="c5e1319"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="nonfree"
 PKG_SITE="http://www.broadcom.com"
 PKG_URL="$DISTRO_SRC/$PKG_NAME-$PKG_VERSION.tar.xz"
-PKG_DEPENDS_TARGET="toolchain"
+PKG_DEPENDS_TARGET="toolchain dtc"
 PKG_PRIORITY="optional"
 PKG_SECTION="graphics"
 PKG_SHORTDESC="OpenMAX-bcm2835: OpenGL-ES and OpenMAX driver for BCM2835"
@@ -56,6 +56,7 @@ make_target() {
     cp -PRv $FLOAT/opt/vc/lib/libmmal_util.so $SYSROOT_PREFIX/usr/lib
     cp -PRv $FLOAT/opt/vc/lib/libmmal_vc_client.so $SYSROOT_PREFIX/usr/lib
     cp -PRv $FLOAT/opt/vc/lib/libvcsm.so $SYSROOT_PREFIX/usr/lib
+    cp -PRv $FLOAT/opt/vc/lib/libdtovl.so $SYSROOT_PREFIX/usr/lib
 }
 
 makeinstall_target() {
@@ -76,11 +77,14 @@ makeinstall_target() {
     cp -PRv $FLOAT/opt/vc/lib/libmmal_util.so $INSTALL/usr/lib
     cp -PRv $FLOAT/opt/vc/lib/libmmal_vc_client.so $INSTALL/usr/lib
     cp -PRv $FLOAT/opt/vc/lib/libvcsm.so $INSTALL/usr/lib
+    cp -PRv $FLOAT/opt/vc/lib/libdtovl.so $INSTALL/usr/lib
 
 # some usefull debug tools
   mkdir -p $INSTALL/usr/bin
+    cp -PRv $FLOAT/opt/vc/bin/dtoverlay $INSTALL/usr/bin
+    ln -s dtoverlay $INSTALL/usr/bin/dtparam
     cp -PRv $FLOAT/opt/vc/bin/vcdbg $INSTALL/usr/bin
-      cp -PRv $FLOAT/opt/vc/lib/libdebug_sym.so $INSTALL/usr/lib
+    cp -PRv $FLOAT/opt/vc/lib/libdebug_sym.so $INSTALL/usr/lib
     cp -PRv $FLOAT/opt/vc/bin/vcgencmd $INSTALL/usr/bin
     cp -PRv $FLOAT/opt/vc/bin/tvservice $INSTALL/usr/bin
     cp -PRv $FLOAT/opt/vc/bin/edidparser $INSTALL/usr/bin
