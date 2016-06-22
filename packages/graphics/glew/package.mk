@@ -1,6 +1,6 @@
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2014 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 #
 #  OpenELEC is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -17,13 +17,13 @@
 ################################################################################
 
 PKG_NAME="glew"
-PKG_VERSION="1.10.0"
+PKG_VERSION="1.13.0"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="BSD"
 PKG_SITE="http://glew.sourceforge.net/"
 PKG_URL="$SOURCEFORGE_SRC/glew/glew/$PKG_VERSION/$PKG_NAME-$PKG_VERSION.tgz"
-PKG_DEPENDS_TARGET="toolchain libX11 libXext libXi libXmu"
+PKG_DEPENDS_TARGET="toolchain"
 PKG_PRIORITY="optional"
 PKG_SECTION="graphics"
 PKG_SHORTDESC="glew: The OpenGL Extension Wrangler Library"
@@ -31,10 +31,6 @@ PKG_LONGDESC="The OpenGL Extension Wrangler Library (GLEW) is a cross-platform C
 
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
-
-if [ ! "$OPENGL" = "no" ]; then
-  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET $OPENGL glu"
-fi
 
 make_target() {
   make CC="$CC" LD="$CC" AR="$AR" \
