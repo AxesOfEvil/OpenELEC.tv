@@ -17,12 +17,11 @@ set -e
   fi
 
 HOST_NAME=`$LOCAL_CC -dumpmachine`
-TARGET_NAME=$(echo $TARGET_SUBARCH | sed -e "s,-,,")-openelec-linux-gnu${TARGET_ABI}
+TARGET_NAME=$TARGET_GCC_ARCH-libreelec-linux-gnu${TARGET_ABI}
 
-if [ -n "$DEVICE" ]; then
-  BUILD=$BUILD_BASE.$DISTRONAME-$PROJECT.$DEVICE.$TARGET_ARCH-$OPENELEC_VERSION
-else
-  BUILD=$BUILD_BASE.$DISTRONAME-$PROJECT.$TARGET_ARCH-$OPENELEC_VERSION
+BUILD=$BUILD_BASE.$DISTRONAME-$PROJECT.$TARGET_ARCH-$LIBREELEC_VERSION
+if [ "$LIBREELEC_VERSION" = "devel" ] ; then
+  BUILD=$BUILD_BASE.$DISTRONAME-$PROJECT.$TARGET_ARCH-$OS_VERSION-$LIBREELEC_VERSION
 fi
 
 if [ -n "$BUILD_SUFFIX" ]; then
@@ -41,7 +40,7 @@ SYSROOT_PREFIX=$ROOT/$TOOLCHAIN/$TARGET_NAME/sysroot
 LIB_PREFIX=$SYSROOT_PREFIX/usr
 TARGET_PREFIX=$ROOT/$TOOLCHAIN/bin/$TARGET_NAME-
 
-FAKEROOT_SCRIPT=$ROOT/.fakeroot.$PROJECT.$TARGET_ARCH
+FAKEROOT_SCRIPT=$ROOT/.fakeroot.$BUILD
 
 if [ -z "$INSTALL" ]; then
   INSTALL=$BUILD/image/system
@@ -63,6 +62,7 @@ SED="sed -i"
   PKG_SITE=""
   PKG_URL=""
   PKG_SOURCE_NAME=""
+  PKG_SOURCE_DIR=""
   PKG_DEPENDS_TARGET=""
   PKG_DEPENDS_HOST=""
   PKG_DEPENDS_INIT=""
@@ -79,7 +79,41 @@ SED="sed -i"
     _FOUND=0
     PKG_DIR=""
 
-    # first check project folder for a package
+    # check project folder for a package in home dir
+    for DIR in $(find $HOME/.libreelec/projects/$PROJECT/packages -type d -name $_PKG_ROOT_NAME 2>/dev/null); do
+      if [ -r "$DIR/package.mk" ]; then
+        # found first, set $PKG_DIR
+        PKG_DIR="$DIR"
+        # keep track of dirs with package.mk for detecting multiple folders
+        _ALL_DIRS="${_ALL_DIRS}${DIR}\\n"
+        _FOUND=$((_FOUND+1))
+        if [ $_FOUND -gt 1 ]; then
+          # _FOUND more ? fail
+          echo "Error - multiple package folders:"
+          echo -e "$_ALL_DIRS"
+          exit 1
+        fi
+      fi
+    done
+
+    # check for a package in home dir if not found already
+    for DIR in $(find $HOME/.libreelec/packages -type d -name $_PKG_ROOT_NAME 2>/dev/null); do
+      if [ -r "$DIR/package.mk" ]; then
+        # found first, set $PKG_DIR
+        PKG_DIR="$DIR"
+        # keep track of dirs with package.mk for detecting multiple folders
+        _ALL_DIRS="${_ALL_DIRS}${DIR}\\n"
+        _FOUND=$((_FOUND+1))
+        if [ $_FOUND -gt 1 ]; then
+          # _FOUND more ? fail
+          echo "Error - multiple package folders:"
+          echo -e "$_ALL_DIRS"
+          exit 1
+        fi
+      fi
+    done
+
+    # check project folder for a package if not found already
     for DIR in $(find $ROOT/projects/$PROJECT/packages -type d -name $_PKG_ROOT_NAME 2>/dev/null); do
       if [ -r "$DIR/package.mk" ]; then
         # found first, set $PKG_DIR
@@ -165,8 +199,6 @@ XORG_PATH_RGB=/usr/lib/X11/rgb
 XORG_PATH_MODULES=/usr/lib/xorg/modules
 XORG_PATH_DRIVERS=/usr/lib/xorg/modules/drivers
 
-SSL_CERTIFICATES="/etc/ssl"
-
 TOOLCHAIN_LANGUAGES=c
 [ "$TOOLCHAIN_CXX" = yes ] && TOOLCHAIN_LANGUAGES=${TOOLCHAIN_LANGUAGES},c++
 
@@ -207,7 +239,7 @@ HOST_PKG_CONFIG_LIBDIR="$ROOT/$TOOLCHAIN/lib/pkgconfig:$ROOT/$TOOLCHAIN/share/pk
 HOST_PKG_CONFIG_SYSROOT_DIR=""
 
 if [ -z "$CCACHE_DIR" ]; then
-    export CCACHE_DIR=$HOME/.ccache-openelec
+    export CCACHE_DIR=$HOME/.ccache-libreelec
 fi
 export MAKEFLAGS=-j$CONCURRENCY_MAKE_LEVEL
 export PKG_CONFIG=$ROOT/$TOOLCHAIN/bin/pkg-config

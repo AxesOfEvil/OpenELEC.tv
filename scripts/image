@@ -2,7 +2,7 @@
 
 ################################################################################
 #      This file is part of OpenELEC - http://www.openelec.tv
-#      Copyright (C) 2009-2014 Stephan Raue (stephan@openelec.tv)
+#      Copyright (C) 2009-2016 Stephan Raue (stephan@openelec.tv)
 #
 #  OpenELEC is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -28,32 +28,53 @@ $SCRIPTS/build squashfs:host
 $SCRIPTS/build dosfstools:host
 $SCRIPTS/build fakeroot:host
 $SCRIPTS/build kmod:host
+$SCRIPTS/build mtools:host
+$SCRIPTS/build populatefs:host
 
 BUILD_DATE=`date +%Y%m%d%H%M%S`
 
-if [ "$OPENELEC_VERSION" = devel ]; then
+GIT_HASH=$(git rev-parse HEAD)
+
+if [ "$LIBREELEC_VERSION" = "devel" ]; then
   if ! GIT_BUILD=$(git rev-list --count HEAD 2>/dev/null)
   then
     GIT_BUILD=$(git rev-list HEAD | wc -l)
   fi
-  GIT_HASH=$(git rev-parse HEAD)
   GIT_ABBREV=$(git log -1 --pretty=format:%h)
-  DEVEL_VERSION=$OPENELEC_VERSION
-  OPENELEC_VERSION=$OPENELEC_VERSION-$BUILD_DATE-r$GIT_BUILD-g$GIT_ABBREV
+  DEVEL_VERSION=$LIBREELEC_VERSION
+  LIBREELEC_VERSION=$LIBREELEC_VERSION-$BUILD_DATE-r$GIT_BUILD-g$GIT_ABBREV
+fi
+
+# Get origin url, fix git:// and git@github.com: urls if necessary
+ORIGIN_URL="$(git remote -v | awk '$1 == "origin" { print $2 }' | head -1 | sed 's#\.git$##;s#^git:#https:#;s#^git@github\.com:#https://github.com/#')"
+
+if [ "$OFFICIAL" = "yes" ]; then
+  LIBREELEC_BUILD="official"
+else
+  LIBREELEC_BUILD="community"
 fi
 
 if [ -z "$DEVICE" ]; then
-  TARGET_VERSION="$PROJECT.$TARGET_ARCH-$OPENELEC_VERSION"
+  TARGET_VERSION="$PROJECT.$TARGET_ARCH-$LIBREELEC_VERSION"
 else
-  TARGET_VERSION="$PROJECT.$TARGET_ARCH-$DEVICE-$OPENELEC_VERSION"
+  TARGET_VERSION="$PROJECT.$DEVICE.$TARGET_ARCH-$LIBREELEC_VERSION"
 fi
 IMAGE_NAME="$DISTRONAME-$TARGET_VERSION"
+
 if [ "$DEVEL_VERSION" = "devel" ] ; then
-  IMAGE_NAME="$DISTRONAME-$PROJECT.$TARGET_ARCH-$DEVICE-$OS_VERSION-$OPENELEC_VERSION"
+  if [ -z "$DEVICE" ]; then
+    IMAGE_NAME="$DISTRONAME-$PROJECT.$TARGET_ARCH-$OS_VERSION-$LIBREELEC_VERSION"
+  else
+    IMAGE_NAME="$DISTRONAME-$PROJECT.$DEVICE.$TARGET_ARCH-$OS_VERSION-$LIBREELEC_VERSION"
+  fi
 fi
 
 if [ "$PROJECT" == "imx6" -a -n "$SYSTEM" ]; then
   IMAGE_NAME="$IMAGE_NAME-$SYSTEM"
+fi
+
+if [ -n "$CUSTOM_IMAGE_NAME" ]; then
+   IMAGE_NAME="$CUSTOM_IMAGE_NAME" 
 fi
 
 if [ -n "$IMAGE_SUFFIX" ]; then
@@ -94,35 +115,27 @@ fi
 
   echo "$TARGET_VERSION" > $INSTALL/etc/release
 
-  echo "$DEVICE" > $INSTALL/etc/device
-
 # create /etc/os-release
   echo -e "NAME=\"$DISTRONAME\"" > $INSTALL/etc/os-release
-  echo -e "VERSION=\"$OPENELEC_VERSION\"" >> $INSTALL/etc/os-release
-  echo -e "ID=\"openelec\"" >> $INSTALL/etc/os-release
+  echo -e "VERSION=\"$LIBREELEC_VERSION\"" >> $INSTALL/etc/os-release
+  echo -e "ID=\"libreelec\"" >> $INSTALL/etc/os-release
   echo -e "VERSION_ID=\"$OS_VERSION\"" >> $INSTALL/etc/os-release
-  echo -e "DEVICE=\"$DEVICE\"" >> $INSTALL/etc/os-release
-  echo -e "PRETTY_NAME=\"$DISTRONAME ($([ "$OFFICIAL" = "yes" ] && echo "official" ||  echo "unofficial")) - Version: $OPENELEC_VERSION\"" >> $INSTALL/etc/os-release
-  echo -e "HOME_URL=\"http://www.openelec.tv\"" >> $INSTALL/etc/os-release
-  echo -e "BUG_REPORT_URL=\"https://github.com/OpenELEC/OpenELEC.tv\"" >> $INSTALL/etc/os-release
-  if [ -n "$GIT_HASH" ]; then
-	echo -e "BUILD_ID=\"$GIT_HASH\"" >> $INSTALL/etc/os-release
-  fi
+  echo -e "PRETTY_NAME=\"$DISTRONAME ($LIBREELEC_BUILD) - Version: $LIBREELEC_VERSION\"" >> $INSTALL/etc/os-release
+  echo -e "HOME_URL=\"http://www.libreelec.tv\"" >> $INSTALL/etc/os-release
+  echo -e "BUG_REPORT_URL=\"$ORIGIN_URL\"" >> $INSTALL/etc/os-release
+  echo -e "BUILD_ID=\"$GIT_HASH\"" >> $INSTALL/etc/os-release
   echo -e "OPENELEC_ARCH=\"$PROJECT.$TARGET_ARCH\"" >> $INSTALL/etc/os-release
-  if [ "$OFFICIAL" = "yes" ]; then
-    echo -e "OPENELEC_BUILD=\"official\"" >> $INSTALL/etc/os-release
-  else
-    echo -e "OPENELEC_BUILD=\"unofficial\"" >> $INSTALL/etc/os-release
-  fi
+  echo -e "LIBREELEC_ARCH=\"$PROJECT.$TARGET_ARCH\"" >> $INSTALL/etc/os-release
+  echo -e "LIBREELEC_BUILD=\"$LIBREELEC_BUILD\"" >> $INSTALL/etc/os-release
 
 # create /etc/issue
-  echo $GREETING0 >  $INSTALL/etc/issue
-  echo $GREETING1 >> $INSTALL/etc/issue
-  echo $GREETING2 >> $INSTALL/etc/issue
-  echo $GREETING3 >> $INSTALL/etc/issue
-  echo $GREETING4 >> $INSTALL/etc/issue
-  echo "$DISTRONAME ($([ "$OFFICIAL" = "yes" ] && echo "official" ||  echo "unofficial")) Version: $OPENELEC_VERSION" >> $INSTALL/etc/issue
-  if [ -n "$GIT_HASH" ]; then
+  echo "$GREETING0" >  $INSTALL/etc/issue
+  echo "$GREETING1" >> $INSTALL/etc/issue
+  echo "$GREETING2" >> $INSTALL/etc/issue
+  echo "$GREETING3" >> $INSTALL/etc/issue
+  echo "$GREETING4" >> $INSTALL/etc/issue
+  echo "$DISTRONAME ($LIBREELEC_BUILD) Version: $LIBREELEC_VERSION" >> $INSTALL/etc/issue
+  if [ "$DEVEL_VERSION" = "devel" ] ; then
     echo "$DISTRONAME git: $GIT_HASH" >> $INSTALL/etc/issue
   fi
 
@@ -134,9 +147,7 @@ fi
   $SCRIPTS/install linux
   $SCRIPTS/install linux-drivers
   $SCRIPTS/install linux-firmware
-  if [ -n "$BOOTLOADER" ]; then
-    $SCRIPTS/install $BOOTLOADER
-  fi
+  $SCRIPTS/install $BOOTLOADER
   $SCRIPTS/install busybox
   $SCRIPTS/install util-linux
   $SCRIPTS/install corefonts
@@ -171,10 +182,9 @@ fi
 
 # Devtools... (not for Release)
   [ "$TESTING" = "yes" ] && $SCRIPTS/install testing
-  [ "$DEVTOOLS" = "yes" ] && $SCRIPTS/install debug
 
-# Hardware random number generator daemon
-  [ "$HW_RNG" = "yes" ] && $SCRIPTS/install rng-tools
+# Install gdb in all builds, including releases
+  $SCRIPTS/install debug
 
 # OEM packages
   [ "$OEM_SUPPORT" = "yes" ] && $SCRIPTS/install oem
@@ -190,20 +200,47 @@ fi
     done
   fi
 
+# copy vendor related files to filesystem
+  if [ -d "$HOME/.libreelec/filesystem" ]; then
+    cp -PR $HOME/.libreelec/filesystem/* $INSTALL
+    # install project specific systemd services
+    for service in $HOME/.libreelec/filesystem/usr/lib/systemd/system/*.service ; do
+      if [ -f "$service" ] ; then
+        enable_service $(basename $service)
+      fi
+    done
+  fi
+
+# copy vendor project related files to filesystem
+  if [ -d "$HOME/.libreelec/projects/$PROJECT/filesystem" ]; then
+    cp -PR $HOME/.libreelec/projects/$PROJECT/filesystem/* $INSTALL
+    # install project specific systemd services
+    for service in $HOME/.libreelec/projects/$PROJECT/filesystem/usr/lib/systemd/system/*.service ; do
+      if [ -f "$service" ] ; then
+        enable_service $(basename $service)
+      fi
+    done
+  fi
+
 # copy board related files to filesystem
   if [ -n "$DEVICE" -a -d "$PROJECT_DIR/$PROJECT/devices/$DEVICE/filesystem" ]; then
     cp -PR $PROJECT_DIR/$PROJECT/devices/$DEVICE/filesystem/* $INSTALL
+    # install device specific systemd services
+    for service in $PROJECT_DIR/$PROJECT/devices/$DEVICE/filesystem/usr/lib/systemd/system/*.service ; do
+      if [ -f "$service" ] ; then
+        enable_service $(basename $service)
+      fi
+    done
   fi
-
 
 # run depmod
   MODVER=$(basename $(ls -d $INSTALL/lib/modules/*))
   find $INSTALL/lib/modules/$MODVER/ -name *.ko | \
     sed -e "s,$INSTALL/lib/modules/$MODVER/,," > $INSTALL/lib/modules/$MODVER/modules.order
-  $ROOT/$TOOLCHAIN/bin/depmod -b $INSTALL $MODVER > /dev/null
+  $ROOT/$TOOLCHAIN/bin/depmod -b $INSTALL $MODVER 2> /dev/null
 
 # strip kernel modules
-  for MOD in `find $INSTALL/lib/modules/ -name *.ko`; do
+  for MOD in `find $INSTALL/lib/modules/ -type f -name *.ko`; do
     $STRIP --strip-debug $MOD
   done
 
@@ -212,7 +249,7 @@ fi
     rm -rf $TARGET_IMG/$IMAGE_NAME.kernel
 
 # copy kernel to target dir
-     if [ "$BOOTLOADER" = "u-boot" -o "$LINUX" = "amlogic" ]; then
+  if [ "$BOOTLOADER" = "u-boot" -o "$LINUX" = "amlogic" ]; then
     KERNEL_IMAGE="$KERNEL_UBOOT_TARGET"
   elif [ "$BOOTLOADER" = "bcm2835-bootloader" ]; then
     KERNEL_IMAGE="zImage"
@@ -240,8 +277,16 @@ fi
     SQUASHFS_COMPRESSION="gzip"
   fi
 
+  if [ "$SQUASHFS_COMPRESSION" = "lz4" ]; then
+    SQUASHFS_COMPRESSION_LEVEL="-Xhc"
+  fi
+
+  if [ -z "$SQUASHFS_BLOCK_SIZE" ]; then
+    SQUASHFS_BLOCK_SIZE="131072"
+  fi
+
   echo "rm -rf $TARGET_IMG/$IMAGE_NAME.system" >> $FAKEROOT_SCRIPT
-  echo "$ROOT/$TOOLCHAIN/bin/mksquashfs $BUILD/image/system $TARGET_IMG/$IMAGE_NAME.system -noappend -comp $SQUASHFS_COMPRESSION" >> $FAKEROOT_SCRIPT
+  echo "$ROOT/$TOOLCHAIN/bin/mksquashfs $BUILD/image/system $TARGET_IMG/$IMAGE_NAME.system -noappend -b $SQUASHFS_BLOCK_SIZE -comp $SQUASHFS_COMPRESSION $SQUASHFS_COMPRESSION_LEVEL" >> $FAKEROOT_SCRIPT
 
 # run fakeroot
   $ROOT/$TOOLCHAIN/bin/fakeroot -- $FAKEROOT_SCRIPT
@@ -254,6 +299,14 @@ fi
 
     RELEASE_DIR="target/$IMAGE_NAME"
 
+    if [ -n "$DEVICE" -a -d "$PROJECT_DIR/$PROJECT/devices/$DEVICE/install" ]; then
+      INSTALL_SRC_DIR="$PROJECT_DIR/$PROJECT/devices/$DEVICE/install"
+    else
+      INSTALL_SRC_DIR="$PROJECT_DIR/$PROJECT/install"
+    fi
+
+    MKIMAGE_TOOL_CMD="$ROOT/$BUILD/linux-$(kernel_version)/arch/$TARGET_KERNEL_ARCH/boot/mkimage -A $TARGET_KERNEL_ARCH -O linux -T script -C none -d"
+
     # cleanup
       rm -rf $RELEASE_DIR
 
@@ -262,21 +315,34 @@ fi
       # remove n previous created release image
         rm -rf $TARGET_IMG/$IMAGE_NAME.img.gz
         if [ -n "$BOOTLOADER" ]; then
-          if [ -d $ROOT/projects/$PROJECT/packages ]; then
-          	BOOTLOADER_DIR=`find $ROOT/projects/$PROJECT/packages -type d -name $BOOTLOADER 2>/dev/null`
-          else
-          	BOOTLOADER_DIR=""
+
+          BOOTLOADER_DIR=""
+
+          if [ -z "$BOOTLOADER_DIR" -a -d $HOME/.openelec/projects/$PROJECT/packages ]; then
+            BOOTLOADER_DIR=`find $HOME/.openelec/projects/$PROJECT/packages -type d -name $BOOTLOADER 2>/dev/null`
+          fi
+
+          if [ -z "$BOOTLOADER_DIR" -a -d $HOME/.openelec/packages ]; then
+            BOOTLOADER_DIR=`find $HOME/.openelec/packages -type d -name $BOOTLOADER 2>/dev/null`
+          fi
+
+          if [ -z "$BOOTLOADER_DIR" -a -d $PROJECT_DIR/$PROJECT/packages ]; then
+            BOOTLOADER_DIR=`find $PROJECT_DIR/$PROJECT/packages -type d -name $BOOTLOADER 2>/dev/null`
           fi
 
           if [ -z "$BOOTLOADER_DIR" -o ! -d "$BOOTLOADER_DIR" ]; then
-          	BOOTLOADER_DIR=`find $PACKAGES -type d -name $BOOTLOADER 2>/dev/null`
+            BOOTLOADER_DIR=`find $PACKAGES -type d -name $BOOTLOADER 2>/dev/null`
           fi
 
           if [ -d "$BOOTLOADER_DIR"/files ]; then
             cp -R $BOOTLOADER_DIR/files/* $RELEASE_DIR
           fi
 
-          if [ -f $PROJECT_DIR/$PROJECT/bootloader/release ]; then
+          if [ -f $HOME/.openelec/projects/$PROJECT/bootloader/release ]; then
+            . $HOME/.openelec/projects/$PROJECT/bootloader/release
+          elif [ -f $HOME/.openelec/bootloader/release ]; then
+            . $HOME/.openelec/bootloader/release
+          elif [ -f $PROJECT_DIR/$PROJECT/bootloader/release ]; then
             . $PROJECT_DIR/$PROJECT/bootloader/release
           elif [ -f "$BOOTLOADER_DIR"/release ]; then
             . $BOOTLOADER_DIR/release
@@ -289,7 +355,7 @@ fi
           $SCRIPTS/unpack imx6-mfgtool2-tbs-matrix
 
           mkdir -p $RELEASE_DIR/MfgTool2-TBS-Matrix
-          cp -PR $BUILD/imx6-mfgtool2-tbs-matrix-*/imx6-mfgtool2-tbs-matrix-*/* $RELEASE_DIR/MfgTool2-TBS-Matrix
+          cp -PR $BUILD/imx6-mfgtool2-tbs-matrix-*/* $RELEASE_DIR/MfgTool2-TBS-Matrix
         fi
 
         cp $ROOT/README* $RELEASE_DIR
@@ -322,10 +388,10 @@ fi
       tar cf $TARGET_IMG/$IMAGE_NAME.tar -C target $IMAGE_NAME
 
     # create image files if requested
-      if [ "$1" = "mkimage" -a -n "$BOOTLOADER" ]; then
+      if [[ ( "$1" = "amlpkg" || "$1" = "mkimage" ) && -n "$BOOTLOADER" ]]; then
         # projects can set KERNEL_NAME (kernel.img)
         if [ -z "$KERNEL_NAME" ] ; then
-          KERNEL_NAME="kernel.img"
+          KERNEL_NAME="KERNEL"
         fi
 
         UBOOT_SYSTEM=""
@@ -337,27 +403,28 @@ fi
           fi
         fi
 
-        echo "mkimage: boo. now root access (sudo) is required..."
-        echo "mkimage: see scripts/image and scripts/mkimage if you dont trust us :)"
         # variables used in image script must be passed
-        sudo env \
+        env \
           PATH="$PATH:/sbin" \
           ROOT="$ROOT" \
           TOOLCHAIN="$TOOLCHAIN" \
           TARGET_IMG="$TARGET_IMG" \
           IMAGE_NAME="$IMAGE_NAME" \
+          INSTALL_SRC_DIR="$INSTALL_SRC_DIR" \
           BOOTLOADER="$BOOTLOADER" \
           KERNEL_NAME="$KERNEL_NAME" \
+          MKIMAGE_TOOL_CMD="$MKIMAGE_TOOL_CMD" \
           RELEASE_DIR="$RELEASE_DIR" \
           UUID_SYSTEM="$(uuidgen)" \
           UUID_STORAGE="$(uuidgen)" \
           UBOOT_SYSTEM="$UBOOT_SYSTEM" \
           EXTRA_CMDLINE="$EXTRA_CMDLINE" \
+          SYSTEM_SIZE="$SYSTEM_SIZE" \
+          SYSTEM_PART_START="$SYSTEM_PART_START" \
           $SCRIPTS/mkimage
       fi
 
-    # create ZIP update and auto-install packages for Amlogic project
-      INSTALL_SRC_DIR="$PROJECT_DIR/$PROJECT/devices/$DEVICE/install"
+    # create WeTek Play (Amlogic) ZIP update and auto-install packages if requested
       if [ "$1" = "amlpkg" ]; then
         echo "Creating Amlogic ZIP update package"
 
@@ -393,15 +460,21 @@ fi
         java -Xmx1024m -jar $SIGNAPK_DIR/signapk.jar -w $SIGNAPK_DIR/testkey.x509.pem $SIGNAPK_DIR/testkey.pk8 update.zip sign/$IMAGE_NAME-update.zip
 
         # create the auto-install package
+        echo "Creating Amlogic ZIP auto-install package"
+        pushd sign > /dev/null
+        echo --update_package=/sdcard/$IMAGE_NAME-update.zip > factory_update_param.aml
+        echo --wipe_data >> factory_update_param.aml
+        echo --wipe_cache >> factory_update_param.aml
         if [ -f "$INSTALL_SRC_DIR/files/recovery.img" ]; then
-          echo "Creating Amlogic ZIP auto-install package"
-          pushd sign > /dev/null
-          echo --update_package=/sdcard/$IMAGE_NAME-update.zip > factory_update_param.aml
           cp $INSTALL_SRC_DIR/files/recovery.img .
-          # cp $INSTALL_SRC_DIR/files/aml_autoscript .
-          zip -q $TARGET_IMG/$IMAGE_NAME.zip *
-          popd > /dev/null
         fi
+        if [ -f $INSTALL_SRC_DIR/files/aml_autoscript ]; then
+          cp $INSTALL_SRC_DIR/files/aml_autoscript .
+        elif [ -f "$INSTALL_SRC_DIR/aml_autoscript.src" ]; then
+          $MKIMAGE_TOOL_CMD "$INSTALL_SRC_DIR/aml_autoscript.src" aml_autoscript > /dev/null
+        fi
+        zip -q $TARGET_IMG/$IMAGE_NAME.zip *
+        popd > /dev/null
 
         # copy update package to target directory
         cp sign/$IMAGE_NAME-update.zip $TARGET_IMG
@@ -421,7 +494,11 @@ fi
     # create release dir
       mkdir -p $RELEASE_DIR/${DISTRONAME}_${PROJECT}
 
-      cp -PR $DISTRO_DIR/$DISTRO/${DISTRONAME}.png $RELEASE_DIR/${DISTRONAME}_${PROJECT}/${DISTRONAME}_${PROJECT}.png
+      if [ -f $DISTRO_DIR/$DISTRO/${DISTRONAME}_40x40.png ]; then
+        cp -PR $DISTRO_DIR/$DISTRO/${DISTRONAME}_40x40.png $RELEASE_DIR/${DISTRONAME}_${PROJECT}/${DISTRONAME}_${PROJECT}.png
+      else
+        cp -PR $DISTRO_DIR/$DISTRO/${DISTRONAME}.png $RELEASE_DIR/${DISTRONAME}_${PROJECT}/${DISTRONAME}_${PROJECT}.png
+      fi
       cp -PR $ROOT/config/noobs/os.json $RELEASE_DIR/${DISTRONAME}_${PROJECT}
       cp -PR $ROOT/config/noobs/partition_setup.sh $RELEASE_DIR/${DISTRONAME}_${PROJECT}
       cp -PR $ROOT/config/noobs/partitions.json $RELEASE_DIR/${DISTRONAME}_${PROJECT}
@@ -436,16 +513,18 @@ fi
 
       sed -e "s%@DISTRONAME@%$DISTRONAME%g" \
           -e "s%@PROJECT@%$PROJECT%g" \
-          -e "s%@OPENELEC_VERSION@%$OPENELEC_VERSION%g" \
+          -e "s%@LIBREELEC_VERSION@%$LIBREELEC_VERSION%g" \
           -e "s%@RELEASE_DATE@%$(date +%F)%g" \
           -e "s%@KERNEL_VERSION@%$(kernel_version)%g" \
           -e "s%@DESCRIPTION@%$DESCRIPTION%g" \
           -e "s%@ROOT_PASSWORD@%$ROOT_PASSWORD%g" \
+          -e "s%@NOOBS_SUPPORTED_MODELS@%$NOOBS_SUPPORTED_MODELS%g" \
           -e "s%@NOOBS_HEX@%$NOOBS_HEX%g" \
           -i $RELEASE_DIR/${DISTRONAME}_${PROJECT}/os.json
 
       sed -e "s%@DISTRONAME@%$DISTRONAME%g" \
           -e "s%@PROJECT@%$PROJECT%g" \
+          -e "s%@SYSTEM_SIZE@%$SYSTEM_SIZE%g" \
           -i $RELEASE_DIR/${DISTRONAME}_${PROJECT}/partitions.json
 
     # create System dir
